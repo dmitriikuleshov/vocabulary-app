@@ -17,7 +17,6 @@ class VocabularyItem:
 
 
 class VocabularyFilesManager:
-
     @staticmethod
     def create_topic_path(topic: str) -> str:
         return f"{TOPICS_FOLDER}/{topic}.json"
@@ -25,8 +24,9 @@ class VocabularyFilesManager:
     def check_topic_existence(self, topic: str) -> bool:
         return os.path.exists(self.create_topic_path(topic))
 
-    def load_vocabulary_items(self, topic: str) -> Optional[List[VocabularyItem]]:
-
+    def load_vocabulary_items(
+        self, topic: str
+    ) -> Optional[List[VocabularyItem]]:
         if not self.check_topic_existence(topic):
             return
 
@@ -41,13 +41,20 @@ class VocabularyFilesManager:
         items.sort(key=lambda x: x.memorization, reverse=True)
         return items
 
-    def dump_vocabulary_items(self, topic: str, items: List[VocabularyItem]) -> None:
+    def dump_vocabulary_items(
+        self, topic: str, items: List[VocabularyItem]
+    ) -> None:
         if not self.check_topic_existence(topic):
             return
         topic_path = self.create_topic_path(topic)
 
         with open(topic_path, "w", encoding="utf-8") as t:
-            json.dump([asdict(item) for item in items], t, indent=4, ensure_ascii=False)
+            json.dump(
+                [asdict(item) for item in items],
+                t,
+                indent=4,
+                ensure_ascii=False,
+            )
 
     def add_item_to_topic(self, topic: str, item: VocabularyItem) -> None:
         items = self.load_vocabulary_items(topic) or []
@@ -163,7 +170,9 @@ class Application:
             self.print_padded("No topics exist yet")
             return
 
-        topics = [f[:-5] for f in os.listdir(TOPICS_FOLDER) if f.endswith(".json")]
+        topics = [
+            f[:-5] for f in os.listdir(TOPICS_FOLDER) if f.endswith(".json")
+        ]
         if not topics:
             self.print_padded("No topics exist yet")
             return
