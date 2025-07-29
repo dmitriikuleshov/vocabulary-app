@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 import json
 import os
 from typing import List, Optional, NoReturn
 from dataclasses import dataclass, asdict, field
 
-TOPICS_FOLDER = "topics"
+TOPICS_FOLDER = f"{os.path.dirname(os.path.abspath(__file__))}/topics"
 
 
 @dataclass
@@ -54,7 +56,7 @@ class VocabularyFilesManager:
 
 
 class Application:
-    def __init__(self):
+    def __init__(self) -> None:
         self.file_manager = VocabularyFilesManager()
 
     @staticmethod
@@ -67,45 +69,49 @@ class Application:
         print(" - [help        ]      - Print all options")
         print(" - [exit        ]      - Exit application\n")
 
+    @staticmethod
+    def print_padded(message: str) -> None:
+        print(f"\n{message}\n")
+
     def create_topic(self, topic: str) -> None:
         if not topic.strip():
-            print("Error: Topic name cannot be empty\n")
+            self.print_padded("Error: Topic name cannot be empty")
             return
 
         if self.file_manager.check_topic_existence(topic):
-            print(f"Error: Topic '{topic}' already exists\n")
+            self.print_padded(f"Error: Topic {topic} already exists")
             return
 
         try:
             os.makedirs(TOPICS_FOLDER, exist_ok=True)
         except OSError as e:
-            print(f"Error creating topics folder: {e}\n")
+            self.print_padded("Error creating topics folder: {e}")
             return
 
         topic_path = self.file_manager.create_topic_path(topic)
         try:
             with open(topic_path, "w", encoding="utf-8") as t:
                 json.dump([], t)
-            print(f"Topic '{topic}' created successfully!\n")
+            self.print_padded(f"Topic {topic} created successfully!")
         except IOError as e:
-            print(f"Error creating topic file: {e}\n")
+            self.print_padded(f"Error creating topic file: {e}")
         except Exception as e:
-            print(f"Unexpected error: {e}\n")
+            self.print_padded(f"Unexpected error: {e}")
 
     def add_item(self, topic: str) -> None:
         if not self.file_manager.check_topic_existence(topic):
-            print("This topic does not exist yet\n")
+            self.print_padded("This topic does not exist yet")
             return
 
         word = input("Enter the word: ").strip()
         if not word:
-            print("Word cannot be empty")
+            self.print_padded("Word cannot be empty")
             return
 
         translation = input("Enter the translation: ").strip()
 
         if not translation:
-            print("Translation cannot be empty")
+            self.print_padded("Translation cannot be empty")
             return
 
         item = VocabularyItem(
@@ -119,15 +125,17 @@ class Application:
 
         self.file_manager.add_item_to_topic(topic, item)
 
+        self.print_padded("Vocabulary item has been added successfully")
+
     def vocabulary_test(self, topic: str) -> None:
         if not self.file_manager.check_topic_existence(topic):
-            print("This topic does not exist yet\n")
+            self.print_padded("This topic does not exist yet")
             return
 
         items = self.file_manager.load_vocabulary_items(topic)
 
         if not items:
-            print("No vocabulary items in this topic\n")
+            self.print_padded("No vocabulary items in this topic")
             return
 
         for index, item in enumerate(items):
@@ -152,21 +160,21 @@ class Application:
 
     def list_topics(self) -> None:
         if not os.path.exists(TOPICS_FOLDER):
-            print("No topics exist yet\n")
+            self.print_padded("No topics exist yet")
             return
 
         topics = [f[:-5] for f in os.listdir(TOPICS_FOLDER) if f.endswith(".json")]
         if not topics:
-            print("No topics exist yet\n")
+            self.print_padded("No topics exist yet")
             return
 
-        print("\nAvailable topics:")
+        self.print_padded("Available topics:")
         for topic in topics:
             print(f"- {topic}")
         print()
 
     def exit_app(self) -> NoReturn:
-        print("\nGoodbye!\n")
+        self.print_padded("Goodbye!")
         exit()
 
     def handle_user_input(self) -> None:
@@ -192,9 +200,9 @@ class Application:
             elif cmd == "exit":
                 self.exit_app()
             else:
-                print("Invalid command. Type 'help' for options.")
+                self.print_padded("Invalid command. Type 'help' for options.")
         except IndexError:
-            print("Not enough arguments for the command\n")
+            self.print_padded("Not enough arguments for the command")
 
     def run(self) -> NoReturn:
         self.list_options()
@@ -211,4 +219,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\nGood Bye!\n")
+        Application.print_padded("Good Bye!")
